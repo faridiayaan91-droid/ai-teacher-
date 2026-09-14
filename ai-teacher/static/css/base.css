@@ -1,0 +1,299 @@
+/* ==========================================================================
+   base.css — tokens, reset, shared controls (see DESIGN.md)
+   ========================================================================== */
+
+:root {
+  /* color */
+  --linen: #F8F7F2;
+  --ink: #23281F;
+  --stone: #5E6A5E;
+  --pine: #26543D;
+  --pine-deep: #1F4733;
+  --pine-press: #1B402E;
+  --blackboard: #14291F;
+  --chalk: #F2F1E8;
+  --sage: #A9BBA9;
+  --lamplight: #E7A03C;
+  --bronze: #8A5A10;
+  --brick: #D98268;
+  --hairline: #E5E6DC;
+  --hairline-input: #DBDCCD;
+  --sheet-paper: #FFFFFF;
+  --hairline-dark: rgba(242, 241, 232, 0.16);
+  --fill-dark: rgba(242, 241, 232, 0.07);
+  --danger-deep: #8E3B22;
+
+  /* type */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-ui: "Instrument Sans", -apple-system, "Segoe UI", Helvetica, Arial,
+             sans-serif;
+  --font-read: "Literata", Georgia, "Times New Roman", serif;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --dur-1: 130ms;
+  --dur-2: 240ms;
+}
+
+/* ----- reset ----- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font: 400 1rem/1.6 var(--font-ui);
+  color: var(--ink);
+  background: var(--linen);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Setting display on a hidden element must never defeat hiding. */
+[hidden] {
+  display: none !important;
+}
+
+h1, h2, h3, p, ol, ul, figure {
+  margin: 0;
+}
+
+ol, ul {
+  padding: 0;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ----- focus ----- */
+
+:where(a, button, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--bronze);
+  outline-offset: 2px;
+}
+
+/* ----- utilities ----- */
+
+.visually-hidden,
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip {
+  position: absolute;
+  left: 16px;
+  top: -48px;
+  z-index: 100;
+  background: var(--pine);
+  color: var(--chalk);
+  font: 500 14px/1 var(--font-ui);
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: top var(--dur-1);
+}
+
+.skip:focus-visible {
+  top: 16px;
+}
+
+.noscript {
+  max-width: 40em;
+  margin: 24px auto;
+  padding: 16px 20px;
+  border-left: 3px solid var(--pine);
+  font: 400 14px/1.6 var(--font-ui);
+  color: var(--stone);
+}
+
+/* ----- buttons ----- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: 600 15.5px/1 var(--font-ui);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: background-color var(--dur-1), border-color var(--dur-1),
+              color var(--dur-1);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--pine);
+  color: var(--chalk);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: var(--pine-deep);
+}
+
+.btn.primary:active:not(:disabled) {
+  background: var(--pine-press);
+}
+
+.btn.primary:disabled {
+  background: rgba(38, 84, 61, 0.35);
+  color: #E9ECE4;
+}
+
+.btn.ghost-light {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--hairline-input);
+}
+
+.btn.ghost-light:hover {
+  border-color: var(--pine);
+}
+
+.btn.ghost-dark {
+  background: var(--fill-dark);
+  color: var(--chalk);
+  border-color: var(--hairline-dark);
+}
+
+.btn.ghost-dark:hover:not(:disabled) {
+  background: rgba(242, 241, 232, 0.12);
+  border-color: rgba(242, 241, 232, 0.34);
+}
+
+.btn.ghost-dark:disabled {
+  color: var(--sage);
+  opacity: 0.55;
+}
+
+.btn.danger {
+  background: var(--danger-deep);
+  color: #F6EFE7;
+}
+
+.btn.danger:hover {
+  background: #7C3117;
+}
+
+.btn.quiet {
+  background: none;
+  border: none;
+  height: auto;
+  padding: 6px 2px;
+  font: 500 14px/1.3 var(--font-ui);
+  color: var(--brick);
+}
+
+.btn.quiet:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.btn .chev {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+
+/* ----- form fields ----- */
+
+.field {
+  margin-bottom: 22px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 8px;
+  font: 500 14.5px/1.3 var(--font-ui);
+  color: var(--ink);
+}
+
+.hint {
+  margin: -2px 0 10px;
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--stone);
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 88px;
+  padding: 12px 14px;
+  background: var(--sheet-paper);
+  border: 1px solid var(--hairline-input);
+  border-radius: 10px;
+  font-size: 16px; /* keeps iOS from zooming on focus */
+  line-height: 1.55;
+}
+
+textarea::placeholder {
+  color: #9AA394;
+}
+
+/* ----- toast ----- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  z-index: 60;
+  max-width: min(480px, calc(100vw - 32px));
+  padding: 12px 18px;
+  background: #FDFCF8;
+  color: var(--ink);
+  font: 500 14px/1.45 var(--font-ui);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(10, 16, 11, 0.35);
+}
+
+/* ----- reduced motion ----- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

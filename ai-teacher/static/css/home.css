@@ -1,0 +1,285 @@
+/* ==========================================================================
+   home.css — the daytime desk (see DESIGN.md)
+   ========================================================================== */
+
+.page-home {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--linen);
+}
+
+.page-home main {
+  flex: 1;
+}
+
+/* ----- the sheet ----- */
+
+.sheet {
+  position: relative;
+  width: min(620px, calc(100% - 24px));
+  margin: clamp(28px, 7vh, 84px) auto 0;
+  padding: clamp(24px, 4.5vw, 48px) clamp(20px, 4.5vw, 52px)
+           clamp(30px, 4.5vw, 46px);
+  background: var(--sheet-paper);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(28, 34, 28, 0.04),
+              0 18px 44px -18px rgba(28, 34, 28, 0.15);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 clamp(26px, 5.5vh, 54px);
+  font: 500 19px/1.1 var(--font-display);
+  color: var(--ink);
+}
+
+.brand .mark {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+
+.notice {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--pine);
+  background: #F1F5EE;
+  border-radius: 0 8px 8px 0;
+  font: 400 14px/1.55 var(--font-ui);
+  color: var(--ink);
+}
+
+.title {
+  text-align: center;
+  font: 500 clamp(2.55rem, 8.6vw, 4rem)/1.04 var(--font-display);
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  text-wrap: balance;
+  margin-bottom: 14px;
+}
+
+.lede {
+  max-width: 46ch;
+  margin: 0 auto clamp(28px, 5vh, 46px);
+  text-align: center;
+  font: 400 1.06rem/1.65 var(--font-ui);
+  color: var(--stone);
+  text-wrap: pretty;
+}
+
+/* ----- upload control ----- */
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 24px 18px;
+  background: var(--linen);
+  border: 1px solid var(--hairline-input);
+  border-radius: 12px;
+  color: var(--ink);
+  transition: border-color var(--dur-1), background-color var(--dur-1);
+}
+
+.dropzone:hover {
+  border-color: var(--pine);
+}
+
+.dropzone.dragover {
+  border-color: var(--bronze);
+  background: #FBF4E4;
+}
+
+.dz-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 6px;
+  color: var(--pine);
+}
+
+.dz-title {
+  font: 600 15.5px/1.3 var(--font-ui);
+}
+
+.dz-sub {
+  font: 400 13px/1.4 var(--font-ui);
+  color: var(--stone);
+}
+
+.file-chips {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.file-chips li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background: var(--sheet-paper);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  font: 400 14px/1.35 var(--font-ui);
+}
+
+.file-chips .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chips .size {
+  margin-left: auto;
+  flex: none;
+  color: var(--stone);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.file-chips .remove {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--stone);
+  font-size: 17px;
+  line-height: 1;
+  transition: background-color var(--dur-1), color var(--dur-1);
+}
+
+.file-chips .remove:hover {
+  background: var(--linen);
+  color: var(--ink);
+}
+
+.file-summary {
+  margin: 8px 0 0;
+  font: 400 13px/1.5 var(--font-ui);
+  color: var(--stone);
+  min-height: 0;
+}
+
+.file-summary:empty {
+  display: none;
+}
+
+.errors {
+  list-style: none;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 400 13.5px/1.5 var(--font-ui);
+  color: #8E3B22;
+}
+
+.errors li {
+  padding-left: 16px;
+  position: relative;
+}
+
+.errors li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #C65B3B;
+}
+
+/* ----- the form's actions ----- */
+
+#start-btn {
+  width: 100%;
+  height: 52px;
+  font-size: 16px;
+}
+
+/* ----- how a lesson goes ----- */
+
+.how {
+  width: min(880px, calc(100% - 40px));
+  margin: clamp(56px, 11vh, 120px) auto clamp(48px, 8vh, 90px);
+}
+
+.how h2 {
+  font: 500 1.65rem/1.2 var(--font-display);
+  color: var(--ink);
+  margin-bottom: 26px;
+}
+
+.steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.steps li {
+  border-top: 2px solid var(--pine);
+  padding-top: 16px;
+}
+
+.step-n {
+  display: block;
+  font: 600 12.5px/1 var(--font-ui);
+  color: var(--stone);
+  margin-bottom: 10px;
+}
+
+.steps h3 {
+  font: 600 1rem/1.4 var(--font-ui);
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.steps p {
+  font: 400 0.925rem/1.62 var(--font-ui);
+  color: var(--stone);
+}
+
+/* ----- footer ----- */
+
+.site-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 22px 20px 30px;
+  border-top: 1px solid var(--hairline);
+  font: 400 13px/1.6 var(--font-ui);
+  color: var(--stone);
+}
+
+/* ----- small screens ----- */
+
+@media (max-width: 760px) {
+  .sheet {
+    margin-top: 20px;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .site-foot {
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Live Assistant</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 700px;
+            max-width: 95%;
+            margin: 40px 0;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #777;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            resize: vertical;
+        }
+        input[type="file"] {
+            width: 100%;
+            margin: 15px 0;
+        }
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #999;
+        }
+        .chat {
+            margin-top: 25px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 10px;
+            white-space: pre-wrap;
+        }
+        .user {
+            background: #e8e8e8;
+        }
+        .gemini {
+            background: #f5f5f5;
+        }
+        .files {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        .voice-button {
+            margin-top: 10px;
+            background: #2c3e50;
+        }
+        .voice-button.recording {
+            background: #e74c3c;
+        }
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+        .button-row button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🎙️ Gemini Live</h1>
+
+    <div id="status" class="status">
+        Upload files to start
+    </div>
+
+    <!-- Upload -->
+    <form id="uploadForm">
+        <textarea
+            name="text"
+            id="initialText"
+            placeholder="Ask something about your files..."
+        ></textarea>
+
+        <input
+            type="file"
+            name="files"
+            id="files"
+            multiple
+        >
+
+        <button id="startButton" type="submit">
+            Start Gemini
+        </button>
+    </form>
+
+    <!-- Chat -->
+    <div id="chat" class="chat"></div>
+
+    <!-- Follow-up text input -->
+    <textarea
+        id="followup"
+        placeholder="Ask a follow-up question..."
+        style="display:none;"
+    ></textarea>
+
+    <div class="button-row" style="display:none;" id="actionButtons">
+        <button id="askButton">Ask Gemini</button>
+        <button id="voiceButton" class="voice-button">🎤 Voice Input</button>
+    </div>
+
+</div>
+
+<script>
+
+let socket = null;
+let audioContext = null;
+let audioProcessor = null;
+let microphoneStream = null;
+let isRecording = false;
+let nextAudioTime = 0;
+
+// ==========================================
+// AUDIO OUTPUT (play PCM from Gemini)
+// ==========================================
+
+function playPCM(arrayBuffer) {
+    if (!audioContext) {
+        audioContext = new AudioContext({ sampleRate: 24000 });
+    }
+
+    const int16 = new Int16Array(arrayBuffer);
+    const audioBuffer = audioContext.createBuffer(1, int16.length, 24000);
+    const channel = audioBuffer.getChannelData(0);
+    for (let i = 0; i < int16.length; i++) {
+        channel[i] = int16[i] / 32768;
+    }
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+
+    const now = audioContext.currentTime;
+    if (nextAudioTime < now) nextAudioTime = now;
+    source.start(nextAudioTime);
+    nextAudioTime += audioBuffer.duration;
+}
+
+// ==========================================
+// CHAT UI
+// ==========================================
+
+function addMessage(role, text) {
+    const chat = document.getElementById("chat");
+    const div = document.createElement("div");
+    div.className = "message " + role;
+    div.innerText = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+}
+
+// ==========================================
+// UPLOAD
+// ==========================================
+
+document.getElementById("uploadForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const button = document.getElementById("startButton");
+    const status = document.getElementById("status");
+
+    button.disabled = true;
+    status.innerText = "Uploading files...";
+
+    const formData = new FormData(this);
+
+    try {
+        const response = await fetch("/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error);
+        }
+
+        status.innerText = "Connecting to Gemini...";
+        connectToGemini(data.session_id, data.text);
+
+    } catch (error) {
+        status.innerText = "Error: " + error.message;
+        button.disabled = false;
+    }
+});
+
+// ==========================================
+// CONNECT GEMINI
+// ==========================================
+
+function connectToGemini(sessionId, initialText) {
+    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+    const url = protocol + "//" + location.host + "/ws/" + sessionId;
+
+    socket = new WebSocket(url);
+    socket.binaryType = "arraybuffer";
+
+    socket.onopen = function() {
+        document.getElementById("status").innerText = "Connected to Gemini";
+    };
+
+    socket.onmessage = function(event) {
+        // Audio
+        if (event.data instanceof ArrayBuffer) {
+            playPCM(event.data);
+            return;
+        }
+
+        // JSON
+        const data = JSON.parse(event.data);
+
+        if (data.type === "connected") {
+            document.getElementById("status").innerText = "Gemini is ready";
+            document.getElementById("followup").style.display = "block";
+            document.getElementById("actionButtons").style.display = "flex";
+
+            // Send initial question
+            if (initialText && initialText.trim()) {
+                addMessage("user", initialText);
+                socket.send(JSON.stringify({
+                    type: "text",
+                    text: initialText
+                }));
+            }
+            return;
+        }
+
+        if (data.type === "text") {
+            addGeminiText(data.text);
+            return;
+        }
+
+        if (data.type === "done") {
+            document.getElementById("status").innerText = "Ready";
+            return;
+        }
+
+        if (data.type === "error") {
+            addMessage("gemini", "Error: " + data.message);
+        }
+    };
+
+    socket.onclose = function() {
+        document.getElementById("status").innerText = "Connection closed";
+        // Stop recording if active
+        stopRecording();
+    };
+
+    socket.onerror = function() {
+        document.getElementById("status").innerText = "WebSocket error";
+    };
+}
+
+// ==========================================
+// GEMINI TEXT (streaming)
+// ==========================================
+
+let currentGeminiMessage = null;
+
+function addGeminiText(text) {
+    if (!currentGeminiMessage) {
+        currentGeminiMessage = addMessage("gemini", "");
+    }
+    currentGeminiMessage.innerText += text;
+    const chat = document.getElementById("chat");
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ==========================================
+// FOLLOW-UP TEXT
+// ==========================================
+
+document.getElementById("askButton").addEventListener("click", function() {
+    const input = document.getElementById("followup");
+    const question = input.value.trim();
+    if (!question) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    addMessage("user", question);
+    currentGeminiMessage = null;
+    socket.send(JSON.stringify({ type: "text", text: question }));
+    input.value = "";
+});
+
+document.getElementById("followup").addEventListener("keydown", function(event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        document.getElementById("askButton").click();
+    }
+});
+
+// ==========================================
+// VOICE INPUT (RECORD MICROPHONE)
+// ==========================================
+
+const voiceButton = document.getElementById("voiceButton");
+
+voiceButton.addEventListener("click", function() {
+    if (isRecording) {
+        stopRecording();
+    } else {
+        startRecording();
+    }
+});
+
+async function startRecording() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        alert("Please connect to Gemini first.");
+        return;
+    }
+
+    try {
+        // Create AudioContext for recording (16kHz)
+        const recordCtx = new AudioContext({ sampleRate: 16000 });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const source = recordCtx.createMediaStreamSource(stream);
+
+        // ScriptProcessor to capture PCM
+        const processor = recordCtx.createScriptProcessor(4096, 1, 1);
+        source.connect(processor);
+        processor.connect(recordCtx.destination);
+
+        // Keep references
+        audioContext = recordCtx;
+        microphoneStream = stream;
+        audioProcessor = processor;
+
+        processor.onaudioprocess = (event) => {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                // If socket closed, stop recording
+                stopRecording();
+                return;
+            }
+            const inputData = event.inputBuffer.getChannelData(0);
+            // Convert float32 to int16 PCM
+            const pcmData = new Int16Array(inputData.length);
+            for (let i = 0; i < inputData.length; i++) {
+                const s = Math.max(-1, Math.min(1, inputData[i]));
+                pcmData[i] = Math.round(s * 32767);
+            }
+            // Send binary
+            socket.send(pcmData.buffer);
+        };
+
+        isRecording = true;
+        voiceButton.textContent = "⏹ Stop Voice";
+        voiceButton.classList.add("recording");
+        document.getElementById("status").innerText = "🎤 Recording...";
+
+    } catch (err) {
+        console.error("Microphone error:", err);
+        alert("Could not access microphone: " + err.message);
+    }
+}
+
+function stopRecording() {
+    if (audioProcessor) {
+        audioProcessor.disconnect();
+        audioProcessor = null;
+    }
+    if (microphoneStream) {
+        microphoneStream.getTracks().forEach(track => track.stop());
+        microphoneStream = null;
+    }
+    if (audioContext && audioContext.state !== "closed") {
+        audioContext.close();
+        audioContext = null;
+    }
+    isRecording = false;
+    voiceButton.textContent = "🎤 Voice Input";
+    voiceButton.classList.remove("recording");
+    document.getElementById("status").innerText = "Ready";
+}
+
+// If the page is closed, stop recording
+window.addEventListener("beforeunload", function() {
+    stopRecording();
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your lesson, AI Lecture</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#14291F">
+  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/lesson.css">
+</head>
+<body class="page-lesson stage-loading">
+
+  <!-- ===================== Loading screen ===================== -->
+  <section id="view-loading" class="view-loading" aria-labelledby="loading-title">
+    <div class="loading-group">
+      <p class="loading-brand" aria-hidden="true">
+        <svg class="mark" viewBox="0 0 32 32" focusable="false">
+          <rect width="32" height="32" rx="7" fill="#26543D"></rect>
+          <g fill="#E7A03C">
+            <rect x="7" y="9" width="9" height="3" rx="1.5"></rect>
+            <rect x="7" y="14.5" width="18" height="3" rx="1.5"></rect>
+            <rect x="7" y="20" width="13" height="3" rx="1.5"></rect>
+          </g>
+        </svg>
+      </p>
+      <h1 id="loading-title">Preparing your lesson</h1>
+      <div class="progress" role="progressbar" aria-label="Lesson preparation"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+           id="progress">
+        <span class="progress-fill" id="progress-fill"></span>
+      </div>
+
+      <ol class="statuses" id="statuses">
+        <li data-stage="reading" class="active">
+          <span class="glyph" aria-hidden="true"></span>
+          <span class="label">Reading your files</span>
+          <span class="detail" aria-hidden="true"></span>
+        </li>
+        <li data-stage="pages">
+          <span class="glyph" aria-hidden="true"></span>
+          <span class="label">Cutting them into pages</span>
+          <span class="detail" aria-hidden="true"></span>
+        </li>
+        <li data-stage="teacher">
+          <span class="glyph" aria-hidden="true"></span>
+          <span class="label">Waking your teacher</span>
+        </li>
+      </ol>
+
+      <div class="seat" id="seat" hidden>
+        <button id="seat-btn" class="btn primary">Take a seat</button>
+        <p class="seat-note">Your teacher is waiting on page one. The mic
+        turns on with you, and you can mute it any time.</p>
+      </div>
+
+      <div class="load-error" id="load-error" hidden>
+        <p id="load-error-text" role="alert"></p>
+        <a class="btn ghost-light" href="/">Back to the start</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Workspace ===================== -->
+  <main id="view-studio" class="studio" hidden>
+
+    <aside class="rail rail-pages" aria-label="Pages">
+      <p class="doc-title" id="doc-title"></p>
+      <button id="prev-btn" class="btn ghost-dark nav-prev" disabled>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M14.5 6L8.5 12l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>Previous</span>
+      </button>
+      <p class="page-indicator" id="page-indicator"></p>
+      <nav class="thumbs" id="thumbs" aria-label="All pages"></nav>
+    </aside>
+
+    <section class="stage" aria-label="The current page">
+      <div class="sheet-frame" id="sheet-frame">
+        <article class="sheet" data-placeholder="1" tabindex="-1">
+          <div class="page-scroll">
+            <div class="page-body">
+              <p class="placeholder">The first page is on its way.</p>
+            </div>
+          </div>
+          <div class="sheet-footer">
+            <p class="cue" hidden></p>
+            <button type="button" class="btn primary next" disabled>
+              <span>Next page</span>
+              <svg class="chev" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9.5 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            </button>
+          </div>
+        </article>
+      </div>
+      <p class="sr-only" id="page-status" role="status"></p>
+    </section>
+
+    <aside class="rail rail-voice" aria-label="Voice">
+      <p class="mode-chip" id="mode-chip">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="mode-text">Connecting</span>
+      </p>
+
+      <div class="ladder" id="ladder" aria-hidden="true"></div>
+
+      <p class="voice-status" id="voice-status" aria-live="polite">Quiet</p>
+      <p class="caption" id="caption"></p>
+
+      <div class="voice-actions">
+        <button id="mic-btn" class="btn ghost-dark voice-btn" aria-pressed="false">
+          <svg class="mic-on-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="9.25" y="3" width="5.5" height="11" rx="2.75" fill="none" stroke="currentColor" stroke-width="1.7"></rect>
+            <path d="M5.75 11a6.25 6.25 0 0 0 12.5 0M12 17.25V21M8.75 21h6.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+          </svg>
+          <svg class="mic-off-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="9.25" y="3" width="5.5" height="11" rx="2.75" fill="none" stroke="currentColor" stroke-width="1.7"></rect>
+            <path d="M5.75 11a6.25 6.25 0 0 0 12.5 0M12 17.25V21M8.75 21h6.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+            <path d="M4.5 4.5l15 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"></path>
+          </svg>
+          <span class="btn-label" id="mic-label">Mic is off</span>
+        </button>
+        <button id="type-btn" class="btn ghost-dark voice-btn">
+          <svg class="keyb-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="6.5" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"></rect>
+            <path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 14h8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+          </svg>
+          <span class="btn-label">Type instead</span>
+        </button>
+        <button id="end-btn" class="btn quiet end">
+          <span class="btn-label">End lesson</span>
+          <svg class="stop-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="7" y="7" width="10" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
+          </svg>
+        </button>
+      </div>
+    </aside>
+
+  </main>
+
+  <dialog id="ask-dialog" class="dialog" aria-labelledby="ask-title">
+    <h2 id="ask-title">Type instead of speaking</h2>
+    <form id="ask-form" novalidate>
+      <label class="visually-hidden" for="ask-input">Your question</label>
+      <textarea id="ask-input" rows="3"
+        placeholder="Ask anything about the page in front of you, or one you already covered."></textarea>
+      <div class="dialog-row">
+        <button type="button" class="btn ghost-dark" id="ask-cancel">Back to
+        the lesson</button>
+        <button type="submit" class="btn primary">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="end-dialog" class="dialog" aria-labelledby="end-title">
+    <h2 id="end-title">End this lesson?</h2>
+    <p class="dialog-copy">Your pages and this session are cleared from the
+    server.</p>
+    <div class="dialog-row">
+      <button value="cancel" class="btn ghost-dark" id="end-cancel">Keep
+      studying</button>
+      <button value="confirm" class="btn danger" id="end-confirm">End
+      lesson</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <noscript>
+    <p class="noscript" role="note">This lesson needs JavaScript to run.</p>
+  </noscript>
+
+  <script>window.LESSON_ID = {{ session_id | tojson }};</script>
+  <script src="/static/js/lesson.js"></script>
+</body>
+</html>
